@@ -1,5 +1,5 @@
 {
-    "name": "PIDF",
+    "name": "PID",
     "description": "PID controller with optional feed forward and setpoint",
     "keywords": "PID PIDF feedforward feed forward control",
     "authors": {
