@@ -1,0 +1,18 @@
+{
+    "name": "PIDF",
+    "description": "PID controller with optional feed forward and setpoint",
+    "keywords": "PID PIDF feedforward feed forward control",
+    "authors": {
+        "name": "Martin Budden",
+        "url": "https://github.com/martinbudden"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/martinbudden/Library-PID.git"
+    },
+    "license": "MIT",
+    "version": "0.0.1",
+    "frameworks": "*",
+    "platforms": "*",
+    "headers": "PIDF.h"
+}
