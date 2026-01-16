@@ -37,7 +37,7 @@ void PIDF::resetAll()
 
 /*!
 Calculate PID output using the provided measurementRate and ITerm error.
-This allows the measurementRate to be filtered and the ITerm error to be attenuated 
+This allows the measurementRate to be filtered and the ITerm error to be attenuated
 before the PID update is called.
 */
 float PIDF::updateDeltaITerm(float measurement, float measurementDelta, float iTermError, float deltaT) // NOLINT(bugprone-easily-swappable-parameters)

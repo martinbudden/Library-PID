@@ -166,7 +166,7 @@ void test_PI_controller()
     error = pid.getError();
     TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.P);
     TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.6F, error.I); // 2.0 + -2.0 * 0.2 
+    TEST_ASSERT_EQUAL_FLOAT(1.6F, error.I); // 2.0 + -2.0 * 0.2
     TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
