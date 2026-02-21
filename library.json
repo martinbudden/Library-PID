@@ -14,5 +14,5 @@
     "version": "0.0.1",
     "frameworks": "*",
     "platforms": "*",
-    "headers": "PIDF.h"
+    "headers": "pid_controller.h"
 }
