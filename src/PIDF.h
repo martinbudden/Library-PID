@@ -23,10 +23,10 @@ Uses "independent PID" notation, where the gains are denoted as kp, ki, kd etc.
 
 (In the "dependent PID" notation Kc, tauI, and tauD parameters are used, where kp = Kc, ki = Kc/tauI, kd = Kc*tauD)
 */
-class PIDF {
+class PidController {
 public:
-    explicit inline PIDF(const pid_constants_t& pid) : _pid {pid.kp, pid.ki, pid.kd, pid.ks, pid.kk}, _ki_saved(pid.ki)  {}
-    inline PIDF() : PIDF({0.0F, 0.0F, 0.0F, 0.0F, 0.0F}) {}
+    explicit inline PidController(const pid_constants_t& pid) : _pid {pid.kp, pid.ki, pid.kd, pid.ks, pid.kk}, _ki_saved(pid.ki)  {}
+    inline PidController() : PidController({0.0F, 0.0F, 0.0F, 0.0F, 0.0F}) {}
 public:
     inline void setP(float p) { _pid.kp = p; }
     inline void setI(float i) { _pid.ki = i; _ki_saved = _pid.ki; }

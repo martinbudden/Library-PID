@@ -1,3 +1,3 @@
 # Test
 
-Tests for the PIDF library.
+Tests for the PidController library.

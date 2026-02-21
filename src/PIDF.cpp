@@ -2,7 +2,7 @@
 #include <cmath>
 
 
-pid_error_t PIDF::get_error() const
+pid_error_t PidController::get_error() const
 {
     return pid_error_t {
         .p = _error_previous*_pid.kp,
@@ -13,7 +13,7 @@ pid_error_t PIDF::get_error() const
     };
 }
 
-pid_error_t PIDF::get_error_raw() const
+pid_error_t PidController::get_error_raw() const
 {
     return pid_error_t {
         .p = _error_previous,
@@ -24,7 +24,7 @@ pid_error_t PIDF::get_error_raw() const
     };
 }
 
-void PIDF::resetAll()
+void PidController::resetAll()
 {
     _setpoint = 0.0F;
     _setpoint_previous = 0.0F;
@@ -40,7 +40,7 @@ Calculate PID output using the provided measurementRate and ITerm error.
 This allows the measurementRate to be filtered and the ITerm error to be attenuated
 before the PID update is called.
 */
-float PIDF::update_delta_iterm(float measurement, float measurementDelta, float iterm_error, float delta_t) // NOLINT(bugprone-easily-swappable-parameters)
+float PidController::update_delta_iterm(float measurement, float measurementDelta, float iterm_error, float delta_t) // NOLINT(bugprone-easily-swappable-parameters)
 {
     _measurement_previous = measurement;
     const float error = _setpoint - measurement;
@@ -87,7 +87,7 @@ float PIDF::update_delta_iterm(float measurement, float measurementDelta, float 
 /*
 Optimized update of S and P terms only (P controller).
 */
-float PIDF::update_sp(float measurement) // NOLINT(bugprone-easily-swappable-parameters)
+float PidController::update_sp(float measurement) // NOLINT(bugprone-easily-swappable-parameters)
 {
     _measurement_previous = measurement;
     const float error = _setpoint - measurement;
@@ -103,7 +103,7 @@ float PIDF::update_sp(float measurement) // NOLINT(bugprone-easily-swappable-par
 /*
 Optimized update of S, P, and I terms only (PI controller)
 */
-float PIDF::update_spi(float measurement, float delta_t) // NOLINT(bugprone-easily-swappable-parameters)
+float PidController::update_spi(float measurement, float delta_t) // NOLINT(bugprone-easily-swappable-parameters)
 {
     _measurement_previous = measurement;
     const float error = _setpoint - measurement;
@@ -145,7 +145,7 @@ float PIDF::update_spi(float measurement, float delta_t) // NOLINT(bugprone-easi
 /*
 Optimized update of S, P, and D terms only (PD controller).
 */
-float PIDF::update_spd(float measurement, float measurementDelta, float delta_t) // NOLINT(bugprone-easily-swappable-parameters)
+float PidController::update_spd(float measurement, float measurementDelta, float delta_t) // NOLINT(bugprone-easily-swappable-parameters)
 {
     _measurement_previous = measurement;
     const float error = _setpoint - measurement;
