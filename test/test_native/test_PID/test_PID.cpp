@@ -17,16 +17,16 @@ void test_PID_init() {
     TEST_ASSERT_EQUAL_FLOAT(0.0, pid.getK());
     TEST_ASSERT_EQUAL_FLOAT(0.0, pid.getSetpoint());
 
-    const PIDF::error_t error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(error.P, 0.0);
-    TEST_ASSERT_EQUAL_FLOAT(error.I, 0.0);
-    TEST_ASSERT_EQUAL_FLOAT(error.D, 0.0);
-    TEST_ASSERT_EQUAL_FLOAT(error.S, 0.0);
-    TEST_ASSERT_EQUAL_FLOAT(error.K, 0.0);
+    const pid_error_t error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(error.p, 0.0);
+    TEST_ASSERT_EQUAL_FLOAT(error.i, 0.0);
+    TEST_ASSERT_EQUAL_FLOAT(error.d, 0.0);
+    TEST_ASSERT_EQUAL_FLOAT(error.s, 0.0);
+    TEST_ASSERT_EQUAL_FLOAT(error.k, 0.0);
 }
 
 void test_PID() {
-    PIDF pid(PIDF::PIDF_t { 5.0F, 3.0F, 1.0F, 0.0F, 0.0F });
+    PIDF pid(pid_constants_t { 5.0F, 3.0F, 1.0F, 0.0F, 0.0F });
 
     TEST_ASSERT_EQUAL_FLOAT(5.0F, pid.getP());
     TEST_ASSERT_EQUAL_FLOAT(3.0F, pid.getI());
@@ -35,21 +35,21 @@ void test_PID() {
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getK());
     TEST_ASSERT_EQUAL_FLOAT(0.0, pid.getSetpoint());
 
-    const float deltaT {0.01F};
+    const float delta_t {0.01F};
     const float input  {0.5F};
-    const float output = pid.update(input, deltaT);
+    const float output = pid.update(input, delta_t);
 
-    const PIDF::error_t error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-input * 5.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-input * 3.0F * deltaT, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(-input * 1.0F / deltaT, error.D);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I + error.D, output);
+    const pid_error_t error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-input * 5.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-input * 3.0F * delta_t, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(-input * 1.0F / delta_t, error.d);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i + error.d, output);
 }
 
 void test_P_controller()
 {
-    PIDF pid(PIDF::PIDF_t { 1.0, 0.0, 0.0, 0.0, 0.0F });
-    const float deltaT {1};
+    PIDF pid(pid_constants_t { 1.0, 0.0, 0.0, 0.0, 0.0F });
+    const float delta_t {1};
 
     TEST_ASSERT_EQUAL_FLOAT(1.0, pid.getP());
     TEST_ASSERT_EQUAL_FLOAT(0.0, pid.getI());
@@ -58,62 +58,62 @@ void test_P_controller()
     TEST_ASSERT_EQUAL_FLOAT(0.0, pid.getK());
     TEST_ASSERT_EQUAL_FLOAT(0.0, pid.getSetpoint());
 
-    float output = pid.update(0, deltaT);
-    PIDF::error_t error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(0, error.D);
-    TEST_ASSERT_EQUAL_FLOAT(0, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0, error.K);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I + error.D, output);
+    float output = pid.update(0, delta_t);
+    pid_error_t error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(0, error.d);
+    TEST_ASSERT_EQUAL_FLOAT(0, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0, error.k);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i + error.d, output);
 
     pid.setSetpoint(5.0);
-    output = pid.update(0.0, deltaT);
-    error = pid.getError();
+    output = pid.update(0.0, delta_t);
+    error = pid.get_error();
     TEST_ASSERT_EQUAL_FLOAT(5.0, output);
-    TEST_ASSERT_EQUAL_FLOAT(5.0, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I + error.D, output);
+    TEST_ASSERT_EQUAL_FLOAT(5.0, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i + error.d, output);
 
-    output = pid.update(1.0, deltaT);
-    error = pid.getError();
+    output = pid.update(1.0, delta_t);
+    error = pid.get_error();
     TEST_ASSERT_EQUAL_FLOAT(4.0, output);
-    TEST_ASSERT_EQUAL_FLOAT(4.0, error.P);
+    TEST_ASSERT_EQUAL_FLOAT(4.0, error.p);
 
-    output = pid.update(2.0, deltaT);
-    error = pid.getError();
+    output = pid.update(2.0, delta_t);
+    error = pid.get_error();
     TEST_ASSERT_EQUAL_FLOAT(3.0, output);
-    TEST_ASSERT_EQUAL_FLOAT(3.0, error.P);
+    TEST_ASSERT_EQUAL_FLOAT(3.0, error.p);
 
-    output = pid.update(3.0, deltaT);
-    error = pid.getError();
+    output = pid.update(3.0, delta_t);
+    error = pid.get_error();
     TEST_ASSERT_EQUAL_FLOAT(2.0, output);
-    TEST_ASSERT_EQUAL_FLOAT(2.0, error.P);
+    TEST_ASSERT_EQUAL_FLOAT(2.0, error.p);
 
-    output = pid.update(4.0, deltaT);
-    error = pid.getError();
+    output = pid.update(4.0, delta_t);
+    error = pid.get_error();
     TEST_ASSERT_EQUAL_FLOAT(1.0, output);
-    TEST_ASSERT_EQUAL_FLOAT(1.0, error.P);
+    TEST_ASSERT_EQUAL_FLOAT(1.0, error.p);
 
-    output = pid.update(5.0, deltaT);
-    error = pid.getError();
+    output = pid.update(5.0, delta_t);
+    error = pid.get_error();
     TEST_ASSERT_EQUAL_FLOAT(0.0, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0, error.P);
+    TEST_ASSERT_EQUAL_FLOAT(0.0, error.p);
 
-    output = pid.update(6.0, deltaT);
-    error = pid.getError();
+    output = pid.update(6.0, delta_t);
+    error = pid.get_error();
     TEST_ASSERT_EQUAL_FLOAT(-1.0, output);
-    TEST_ASSERT_EQUAL_FLOAT(-1.0, error.P);
+    TEST_ASSERT_EQUAL_FLOAT(-1.0, error.p);
 
-    output = pid.update(5.0, deltaT);
-    error = pid.getError();
+    output = pid.update(5.0, delta_t);
+    error = pid.get_error();
     TEST_ASSERT_EQUAL_FLOAT(0.0, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0, error.P);
+    TEST_ASSERT_EQUAL_FLOAT(0.0, error.p);
 }
 
 void test_PI_controller()
 {
-    PIDF pid(PIDF::PIDF_t { 0.3F, 0.2F, 0.0F, 0.0F, 0.0F });
-    const float deltaT {1};
+    PIDF pid(pid_constants_t { 0.3F, 0.2F, 0.0F, 0.0F, 0.0F });
+    const float delta_t {1};
 
     TEST_ASSERT_EQUAL_FLOAT(0.3F, pid.getP());
     TEST_ASSERT_EQUAL_FLOAT(0.2F, pid.getI());
@@ -122,91 +122,91 @@ void test_PI_controller()
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getK());
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getSetpoint());
 
-    float output = pid.update(0, deltaT);
-    PIDF::error_t error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.D);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I + error.D, output);
+    float output = pid.update(0, delta_t);
+    pid_error_t error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.d);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i + error.d, output);
 
     pid.setSetpoint(5.0F);
-    output = pid.update(0.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(1.5F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(5.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.0F, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update(0.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(1.5F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(5.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.0F, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(2.5F, output);
 
-    output = pid.update(1.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(1.2F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(4.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.8F, error.I); // 1.0 + (5.0 - 1.0) * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update(1.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(1.2F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(4.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.8F, error.i); // 1.0 + (5.0 - 1.0) * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(3.0F, output);
 
-    output = pid.update(4.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.3F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(1.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(2.0F, error.I); // 1.8 + (5.0 - 4.0) * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update(4.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.3F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(1.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(2.0F, error.i); // 1.8 + (5.0 - 4.0) * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(2.3F, output);
 
-    output = pid.update(7.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.6F, error.I); // 2.0 + -2.0 * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update(7.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.6F, error.i); // 2.0 + -2.0 * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(1.0F, output);
 
-    output = pid.update(6.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.3F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-1.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.I); // 1.6 + -1.0 * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update(6.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.3F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-1.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.i); // 1.6 + -1.0 * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(1.1F, output);
 
-    output = pid.update(5.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.I); // 1.5 + (0.0 - 1.0) * 0.2 /2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update(5.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.i); // 1.5 + (0.0 - 1.0) * 0.2 /2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(1.4F, output);
 
-    output = pid.update(5.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.I); // 1.4 + (0.0 + 0.0) * 0.2 / 2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update(5.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.i); // 1.4 + (0.0 + 0.0) * 0.2 / 2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(1.4F, output);
 }
 
 void test_update_PI()
 {
-    PIDF pid(PIDF::PIDF_t { 0.3F, 0.2F, 0.0F, 0.0F, 0.0F });
-    const float deltaT {1};
+    PIDF pid(pid_constants_t { 0.3F, 0.2F, 0.0F, 0.0F, 0.0F });
+    const float delta_t {1};
 
     TEST_ASSERT_EQUAL_FLOAT(0.3F, pid.getP());
     TEST_ASSERT_EQUAL_FLOAT(0.2F, pid.getI());
@@ -215,344 +215,344 @@ void test_update_PI()
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getK());
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getSetpoint());
 
-    float output = pid.updateSPI(0, deltaT);
-    PIDF::error_t error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.D);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I + error.D, output);
+    float output = pid.update_spi(0, delta_t);
+    pid_error_t error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.d);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i + error.d, output);
 
     pid.setSetpoint(5.0F);
-    output = pid.updateSPI(0.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(1.5F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(5.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.0F, error.I); // 5.0 * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update_spi(0.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(1.5F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(5.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.0F, error.i); // 5.0 * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(2.5F, output);
 
-    output = pid.updateSPI(1.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(1.2F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(4.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.8F, error.I); // 1.0 + 4.0 * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update_spi(1.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(1.2F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(4.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.8F, error.i); // 1.0 + 4.0 * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(3.0F, output);
 
-    output = pid.updateSPI(4.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.3F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(1.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(2.0F, error.I); // 1.8 + 1.0 * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update_spi(4.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.3F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(1.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(2.0F, error.i); // 1.8 + 1.0 * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(2.3F, output);
 
-    output = pid.updateSPI(7.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.6F, error.I); // 2.0 + -2.0 * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update_spi(7.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.6F, error.i); // 2.0 + -2.0 * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(1.0F, output);
 
-    output = pid.updateSPI(6.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.3F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-1.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.I); // 1.6 + -1.0 * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update_spi(6.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.3F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-1.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.i); // 1.6 + -1.0 * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(1.1F, output);
 
-    output = pid.updateSPI(5.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.I); // 1.4 + 0.0 * 0.2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update_spi(5.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.i); // 1.4 + 0.0 * 0.2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(1.4F, output);
 
-    output = pid.updateSPI(5.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.I); // 1.4 + (0.0 + 0.0) * 0.2 / 2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    output = pid.update_spi(5.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(1.4F, error.i); // 1.4 + (0.0 + 0.0) * 0.2 / 2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
     TEST_ASSERT_EQUAL_FLOAT(1.4F, output);
 }
 
 void test_integration_on_off()
 {
-    PIDF pid(PIDF::PIDF_t { 0.2F, 0.3F, 0.0F, 0.0F, 0.0F });
-    const float deltaT {1};
+    PIDF pid(pid_constants_t { 0.2F, 0.3F, 0.0F, 0.0F, 0.0F });
+    const float delta_t {1};
 
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getSetpoint());
 
-    float output = pid.update(0.0F, deltaT);
+    float output = pid.update(0.0F, delta_t);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, output);
-    PIDF::error_t error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
+    pid_error_t error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.I); // 0.0 + -2.0* 0.3
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.i); // 0.0 + -2.0* 0.3
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
     TEST_ASSERT_EQUAL_FLOAT(-1.0F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(-1.2F, error.I); // -0.6 +-2.0 * 0.3
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(-1.2F, error.i); // -0.6 +-2.0 * 0.3
     TEST_ASSERT_EQUAL_FLOAT(-1.6F, output);
 
     // Integration OFF
     pid.switchIntegrationOff();
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
 
-    output = pid.update(0.0F, deltaT);
+    output = pid.update(0.0F, delta_t);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, output);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
     TEST_ASSERT_EQUAL_FLOAT(-0.4F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-0.4F, output);
 
     // Integration back ON
     pid.switchIntegrationOn();
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
 
-    output = pid.update(0.0F, deltaT);
+    output = pid.update(0.0F, delta_t);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, output);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I); // 0.0 + 0.0 * 0.3
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i); // 0.0 + 0.0 * 0.3
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.I); // - 0.3 + (0.0 - 2.0) * 0.3 / 2
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.i); // - 0.3 + (0.0 - 2.0) * 0.3 / 2
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
     TEST_ASSERT_EQUAL_FLOAT(-1.0F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(-1.2F, error.I); // -0.6 + (-2.0 - 2.0) * 0.3 / 2
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(-1.2F, error.i); // -0.6 + (-2.0 - 2.0) * 0.3 / 2
     TEST_ASSERT_EQUAL_FLOAT(-1.6F, output);
 
     pid.resetAll();
-    error = pid.getError();
+    error = pid.get_error();
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getSetpoint());
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousSetpoint());
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getSetpointDelta());
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousMeasurement());
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.D);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.S);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.K);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.d);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.s);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.k);
 }
 
 void test_integral_limit()
 {
-    PIDF pid(PIDF::PIDF_t { 0.2F, 0.3F, 0.0F, 0.0F, 0.0F });
-    pid.setIntegralLimit(2.0F);
-    const float deltaT {1};
+    PIDF pid(pid_constants_t { 0.2F, 0.3F, 0.0F, 0.0F, 0.0F });
+    pid.set_integral_limit(2.0F);
+    const float delta_t {1};
 
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getSetpoint());
 
-    float output = pid.update(0.0F, deltaT);
+    float output = pid.update(0.0F, delta_t);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, output);
-    PIDF::error_t error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
+    pid_error_t error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
     TEST_ASSERT_EQUAL_FLOAT(-1.0F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-1.2F, error.I);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-1.2F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-1.6F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-1.8F, error.I);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-1.8F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-2.2F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, error.I);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-2.4F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-2.0F, error.I);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-2.0F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-2.4F, output);
 }
 
 void test_integral_saturation_positive()
 {
-    PIDF pid(PIDF::PIDF_t { 0.2F, 0.3F, 0.0F, 0.0F, 0.0F });
-    pid.setOutputSaturationValue(1.5F);
-    const float deltaT {1};
+    PIDF pid(pid_constants_t { 0.2F, 0.3F, 0.0F, 0.0F, 0.0F });
+    pid.setoutput_saturation_value(1.5F);
+    const float delta_t {1};
 
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getSetpoint());
 
-    float output = pid.update(0.0F, deltaT);
+    float output = pid.update(0.0F, delta_t);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, output);
-    PIDF::error_t error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
+    pid_error_t error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-0.6F, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
     TEST_ASSERT_EQUAL_FLOAT(-1.0F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-1.1F, error.I);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-1.1F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-1.5F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-1.1F, error.I);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-1.1F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-1.5F, output);
 
-    output = pid.update(2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-1.1F, error.I);
+    output = pid.update(2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-1.1F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-1.5F, output);
 
-    output = pid.update(1.5F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.3F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-1.2F, error.I);
+    output = pid.update(1.5F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.3F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-1.2F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-1.5F, output);
 
-    output = pid.update(1.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.2F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-1.3F, error.I);
+    output = pid.update(1.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.2F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-1.3F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-1.5F, output);
 
-    output = pid.update(0.5F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.1F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-0.5F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(-1.4F, error.I);
+    output = pid.update(0.5F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.1F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-0.5F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(-1.4F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-1.5F, output);
 
-    output = pid.update(0.2F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.04F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(-0.2F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(-1.46F, error.I);
+    output = pid.update(0.2F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.04F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(-0.2F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(-1.46F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(-1.5F, output);
 
-    output = pid.update(0.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(-0.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(-1.46F, error.I); // -1.46 + 0.0 * 0.3
+    output = pid.update(0.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(-0.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(-1.46F, error.i); // -1.46 + 0.0 * 0.3
     TEST_ASSERT_EQUAL_FLOAT(-1.46F, output);
 
-    output = pid.update(0.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getPreviousError());
-    TEST_ASSERT_EQUAL_FLOAT(-1.46F, error.I); // -1.495 + 0.0 * 0.3
+    output = pid.update(0.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.get_previous_error());
+    TEST_ASSERT_EQUAL_FLOAT(-1.46F, error.i); // -1.495 + 0.0 * 0.3
     TEST_ASSERT_EQUAL_FLOAT(-1.46F, output);
 }
 
 void test_integral_saturation_negative()
 {
-    PIDF pid(PIDF::PIDF_t { 0.2F, 0.3F, 0.0F, 0.0F, 0.0F });
-    pid.setOutputSaturationValue(1.5F);
-    const float deltaT {1};
+    PIDF pid(pid_constants_t { 0.2F, 0.3F, 0.0F, 0.0F, 0.0F });
+    pid.setoutput_saturation_value(1.5F);
+    const float delta_t {1};
 
     TEST_ASSERT_EQUAL_FLOAT(0.0F, pid.getSetpoint());
 
-    float output = pid.update(0.0F, deltaT);
+    float output = pid.update(0.0F, delta_t);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, output);
-    PIDF::error_t error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.I);
+    pid_error_t error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.0F, error.i);
 
-    output = pid.update(-2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(0.6F, error.I);
-    TEST_ASSERT_EQUAL_FLOAT(error.P + error.I, output);
+    output = pid.update(-2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(0.6F, error.i);
+    TEST_ASSERT_EQUAL_FLOAT(error.p + error.i, output);
     TEST_ASSERT_EQUAL_FLOAT(1.0F, output);
 
-    output = pid.update(-2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(1.1F, error.I);
+    output = pid.update(-2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(1.1F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(1.5F, output);
 
-    output = pid.update(-2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(1.1F, error.I);
+    output = pid.update(-2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(1.1F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(1.5F, output);
 
-    output = pid.update(-2.0F, deltaT);
-    error = pid.getError();
-    TEST_ASSERT_EQUAL_FLOAT(0.4F, error.P);
-    TEST_ASSERT_EQUAL_FLOAT(1.1F, error.I);
+    output = pid.update(-2.0F, delta_t);
+    error = pid.get_error();
+    TEST_ASSERT_EQUAL_FLOAT(0.4F, error.p);
+    TEST_ASSERT_EQUAL_FLOAT(1.1F, error.i);
     TEST_ASSERT_EQUAL_FLOAT(1.5F, output);
 }
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)

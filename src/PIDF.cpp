@@ -2,37 +2,37 @@
 #include <cmath>
 
 
-PIDF::error_t PIDF::getError() const
+pid_error_t PIDF::get_error() const
 {
-    return error_t {
-        .P = _errorPrevious*_pid.kp,
-        .I = _errorIntegral, // _erroIntegral is already multiplied by _pid.ki
-        .D = _errorDerivative*_pid.kd,
-        .S = _setpoint*_pid.ks,
-        .K = _setpointDerivative*_pid.kk
+    return pid_error_t {
+        .p = _error_previous*_pid.kp,
+        .i = _error_integral, // _erroIntegral is already multiplied by _pid.ki
+        .d = _error_derivative*_pid.kd,
+        .s = _setpoint*_pid.ks,
+        .k = _setpoint_derivative*_pid.kk
     };
 }
 
-PIDF::error_t PIDF::getErrorRaw() const
+pid_error_t PIDF::get_error_raw() const
 {
-    return error_t {
-        .P = _errorPrevious,
-        .I = (_pid.ki == 0.0F) ? 0.0F : _errorIntegral / _pid.ki,
-        .D = _errorDerivative,
-        .S = _setpoint,
-        .K = _setpointDerivative
+    return pid_error_t {
+        .p = _error_previous,
+        .i = (_pid.ki == 0.0F) ? 0.0F : _error_integral / _pid.ki,
+        .d = _error_derivative,
+        .s = _setpoint,
+        .k = _setpoint_derivative
     };
 }
 
 void PIDF::resetAll()
 {
     _setpoint = 0.0F;
-    _setpointPrevious = 0.0F;
-    _setpointDerivative = 0.0F;
-    _errorDerivative = 0.0F;
-    _errorIntegral = 0.0F;
-    _errorPrevious = 0.0F;
-    _measurementPrevious = 0.0F;
+    _setpoint_previous = 0.0F;
+    _setpoint_derivative = 0.0F;
+    _error_derivative = 0.0F;
+    _error_integral = 0.0F;
+    _error_previous = 0.0F;
+    _measurement_previous = 0.0F;
 }
 
 /*!
@@ -40,46 +40,46 @@ Calculate PID output using the provided measurementRate and ITerm error.
 This allows the measurementRate to be filtered and the ITerm error to be attenuated
 before the PID update is called.
 */
-float PIDF::updateDeltaITerm(float measurement, float measurementDelta, float iTermError, float deltaT) // NOLINT(bugprone-easily-swappable-parameters)
+float PIDF::update_delta_iterm(float measurement, float measurementDelta, float iterm_error, float delta_t) // NOLINT(bugprone-easily-swappable-parameters)
 {
-    _measurementPrevious = measurement;
+    _measurement_previous = measurement;
     const float error = _setpoint - measurement;
-    _errorDerivative = -measurementDelta / deltaT; // note minus sign, error delta has reverse polarity to measurement delta
+    _error_derivative = -measurementDelta / delta_t; // note minus sign, error delta has reverse polarity to measurement delta
     // Partial PID sum, excludes ITerm
     // has additional S setpoint(openloop) and F feedforward(setpoint derivative) terms
     //                       P             +  D                       + S                 + K (no ITerm)
-    const float partialSum = _pid.kp*error + _pid.kd*_errorDerivative + _pid.ks*_setpoint + _pid.kk*_setpointDerivative;
+    const float partial_sum = _pid.kp*error + _pid.kd*_error_derivative + _pid.ks*_setpoint + _pid.kk*_setpoint_derivative;
 
-    if (_integralThreshold == 0.0F || fabsf(error) >= _integralThreshold) {
+    if (_integral_threshold == 0.0F || fabsf(error) >= _integral_threshold) {
         // "integrate" the error
-        _errorIntegral += _pid.ki*iTermError*deltaT; // Euler integration
-        //_errorIntegral += _pid.ki*0.5F*(iTermError + _errorPrevious)*deltaT; // integration using trapezoid rule
+        _error_integral += _pid.ki*iterm_error*delta_t; // Euler integration
+        //_error_integral += _pid.ki*0.5F*(iterm_error + _error_previous)*delta_t; // integration using trapezoid rule
         // Anti-windup via integral clamping
-        if (_integralMax > 0.0F && _errorIntegral > _integralMax) {
-            _errorIntegral = _integralMax;
-        } else if (_integralMin < 0.0F && _errorIntegral < _integralMin) {
-            _errorIntegral = _integralMin;
+        if (_integral_max > 0.0F && _error_integral > _integral_max) {
+            _error_integral = _integral_max;
+        } else if (_integral_min < 0.0F && _error_integral < _integral_min) {
+            _error_integral = _integral_min;
         }
     }
-    _errorPrevious = error;
+    _error_previous = error;
 
-    if (_outputSaturationValue > 0.0F) {
+    if (_output_saturation_value > 0.0F) {
         // Anti-windup by avoiding output saturation.
-        // Check if partialSum + _errorIntegral saturates the output
+        // Check if partial_sum + _error_integral saturates the output
         // If so, the excess value above saturation does not help convergence to the setpoint and will result in
         // overshoot when the P value eventually comes down.
-        // So limit the _errorIntegral to a value that avoids output saturation.
-        if (_errorIntegral > _outputSaturationValue - partialSum) {
-            _errorIntegral = std::fmax(_outputSaturationValue - partialSum, 0.0F);
-        } else if (_errorIntegral < -_outputSaturationValue - partialSum) {
-            _errorIntegral = std::fmin(-_outputSaturationValue - partialSum, 0.0F);
+        // So limit the _error_integral to a value that avoids output saturation.
+        if (_error_integral > _output_saturation_value - partial_sum) {
+            _error_integral = std::fmax(_output_saturation_value - partial_sum, 0.0F);
+        } else if (_error_integral < -_output_saturation_value - partial_sum) {
+            _error_integral = std::fmin(-_output_saturation_value - partial_sum, 0.0F);
         }
     }
 
 
     // The PID calculation with additional S setpoint(openloop) and F feedforward(setpoint derivative) terms
     //                   P+D+S+F    +  I
-    const float output = partialSum + _errorIntegral;
+    const float output = partial_sum + _error_integral;
 
     return output;
 }
@@ -87,11 +87,11 @@ float PIDF::updateDeltaITerm(float measurement, float measurementDelta, float iT
 /*
 Optimized update of S and P terms only (P controller).
 */
-float PIDF::updateSP(float measurement) // NOLINT(bugprone-easily-swappable-parameters)
+float PIDF::update_sp(float measurement) // NOLINT(bugprone-easily-swappable-parameters)
 {
-    _measurementPrevious = measurement;
+    _measurement_previous = measurement;
     const float error = _setpoint - measurement;
-    _errorPrevious = error;
+    _error_previous = error;
 
     // The P (no I, no D) calculation with additional S setpoint(openloop) term
     //                   P             + S
@@ -103,41 +103,41 @@ float PIDF::updateSP(float measurement) // NOLINT(bugprone-easily-swappable-para
 /*
 Optimized update of S, P, and I terms only (PI controller)
 */
-float PIDF::updateSPI(float measurement, float deltaT) // NOLINT(bugprone-easily-swappable-parameters)
+float PIDF::update_spi(float measurement, float delta_t) // NOLINT(bugprone-easily-swappable-parameters)
 {
-    _measurementPrevious = measurement;
+    _measurement_previous = measurement;
     const float error = _setpoint - measurement;
-    const float partialSum = _pid.kp*error + _pid.ks*_setpoint;
+    const float partial_sum = _pid.kp*error + _pid.ks*_setpoint;
 
-    if (_integralThreshold == 0.0F || fabsf(error) >= _integralThreshold) {
+    if (_integral_threshold == 0.0F || fabsf(error) >= _integral_threshold) {
         // "integrate" the error
-        _errorIntegral += _pid.ki*error*deltaT; // Euler integration
-        //_errorIntegral += _pid.ki*0.5F*(error + _errorPrevious)*deltaT; // integration using trapezoid rule
+        _error_integral += _pid.ki*error*delta_t; // Euler integration
+        //_error_integral += _pid.ki*0.5F*(error + _error_previous)*delta_t; // integration using trapezoid rule
         // Anti-windup via integral clamping
-        if (_integralMax > 0.0F && _errorIntegral > _integralMax) {
-            _errorIntegral = _integralMax;
-        } else if (_integralMin < 0.0F && _errorIntegral < _integralMin) {
-            _errorIntegral = _integralMin;
+        if (_integral_max > 0.0F && _error_integral > _integral_max) {
+            _error_integral = _integral_max;
+        } else if (_integral_min < 0.0F && _error_integral < _integral_min) {
+            _error_integral = _integral_min;
         }
     }
-    _errorPrevious = error;
+    _error_previous = error;
 
-    if (_outputSaturationValue > 0.0F) {
+    if (_output_saturation_value > 0.0F) {
         // Anti-windup by avoiding output saturation.
-        // Check if partialSum + _errorIntegral saturates the output
+        // Check if partial_sum + _error_integral saturates the output
         // If so, the excess value above saturation does not help convergence to the setpoint and will result in
         // overshoot when the P value eventually comes down.
-        // So limit the _errorIntegral to a value that avoids output saturation.
-        if (_errorIntegral > _outputSaturationValue - partialSum) {
-            _errorIntegral = std::fmax(_outputSaturationValue - partialSum, 0.0F);
-        } else if (_errorIntegral < -_outputSaturationValue - partialSum) {
-            _errorIntegral = std::fmin(-_outputSaturationValue - partialSum, 0.0F);
+        // So limit the _error_integral to a value that avoids output saturation.
+        if (_error_integral > _output_saturation_value - partial_sum) {
+            _error_integral = std::fmax(_output_saturation_value - partial_sum, 0.0F);
+        } else if (_error_integral < -_output_saturation_value - partial_sum) {
+            _error_integral = std::fmin(-_output_saturation_value - partial_sum, 0.0F);
         }
     }
 
     // The PI (no D) calculation with additional S setpoint(openloop) term
     //                   P + S      +  I
-    const float output = partialSum + _errorIntegral;
+    const float output = partial_sum + _error_integral;
 
     return output;
 }
@@ -145,18 +145,18 @@ float PIDF::updateSPI(float measurement, float deltaT) // NOLINT(bugprone-easily
 /*
 Optimized update of S, P, and D terms only (PD controller).
 */
-float PIDF::updateSPD(float measurement, float measurementDelta, float deltaT) // NOLINT(bugprone-easily-swappable-parameters)
+float PIDF::update_spd(float measurement, float measurementDelta, float delta_t) // NOLINT(bugprone-easily-swappable-parameters)
 {
-    _measurementPrevious = measurement;
+    _measurement_previous = measurement;
     const float error = _setpoint - measurement;
 
-    _errorPrevious = error;
+    _error_previous = error;
 
-    _errorDerivative = -measurementDelta / deltaT; // note minus sign, error delta has reverse polarity to measurement delta
+    _error_derivative = -measurementDelta / delta_t; // note minus sign, error delta has reverse polarity to measurement delta
 
     // The PD (no I) calculation with additional S setpoint(openloop) term
     //                   P             + D                        + S
-    const float output = _pid.kp*error + _pid.kd*_errorDerivative + _pid.ks*_setpoint;
+    const float output = _pid.kp*error + _pid.kd*_error_derivative + _pid.ks*_setpoint;
 
     return output;
 }
