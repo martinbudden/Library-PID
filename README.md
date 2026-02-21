@@ -13,7 +13,7 @@ The PID controller has the following features:
    Setting `ks` and `kk` to zero gives a traditional PID controller.
    Setting `kp`, `ki`, `kd`, and `ks` to zero gives pure open-loop control.
 2. Calculation of derivative on measurement, avoiding "derivative kick" when the setpoint changes. If derivative kick is desired,
-   then it can be added by setting the K-term (`kk`) and calling `setsetpoint_derivative` when the setpoint changes.
+   then it can be added by setting the K-term (`kk`) and calling `set_setpoint_derivative` when the setpoint changes.
 3. _delta-t_ input parameter to PID `update` function. This allows for jitter in the timing of the call to the `update` function.
 4. A choice of two methods of controlling integral windup. Either the integral term can be limited to a maximum value,
    or it can be limited when the output saturates. Both methods can be used together, if desired.

@@ -24,7 +24,7 @@ pid_error_t PidController::get_error_raw() const
     };
 }
 
-void PidController::resetAll()
+void PidController::reset_all()
 {
     _setpoint = 0.0F;
     _setpoint_previous = 0.0F;
